@@ -86,7 +86,7 @@ public:
     QByteArray toQByteArray(uint16_t tmp);
     QByteArray toQByteArray(uint32_t tmp);
     QFile *file;
-    void calcCRC(QByteArray &tmpBuf, CRCList calcSelect = CRC32 );
+    QByteArray calcCRC(QByteArray &tmpBuf, CRCList calcSelect = CRC32 );
 
 private slots:
     void on_txtEdit_textChanged();

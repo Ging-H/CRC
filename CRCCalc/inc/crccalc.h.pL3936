@@ -86,7 +86,35 @@ public:
     QByteArray toQByteArray(uint16_t tmp);
     QByteArray toQByteArray(uint32_t tmp);
     QFile *file;
-    void calcCRC(QByteArray &tmpBuf, CRCList calcSelect = CRC32 );
+    void Test();
+
+    /* api for crc4 */
+//    void apiCRC4_itu(QByteArray &array);
+
+//    void apiCRC5_epc(QByteArray &array);
+//    void apiCRC5_itu(QByteArray &array);
+//    void apiCRC5_usb(QByteArray &array);
+
+//    void apiCRC6_itu(QByteArray &array);
+
+//    void apiCRC7_mmc(QByteArray &array);
+
+//    void apiCRC8(QByteArray &array);
+//    void apiCRC8_itu(QByteArray &array);
+//    void apiCRC8_rohc(QByteArray &array);
+//    void apiCRC8_maxim(QByteArray &array);
+
+//    void apiCRC16_ibm(QByteArray &array);
+//    void apiCRC16_maxim(QByteArray &array);
+//    void apiCRC16_usb(QByteArray &array);
+//    void apiCRC16_modbus(QByteArray &array);
+//    void apiCRC16_ccitt(QByteArray &array);
+//    void apiCRC16_ccitt_false(QByteArray &array);
+//    void apiCRC16_x25(QByteArray &array);
+//    void apiCRC16_xmodem(QByteArray &array);
+//    void apiCRC16_dnp(QByteArray &array);
+//    void apiCRC32(QByteArray &array);
+//    void apiCRC32_mpeg2(QByteArray &array);
 
 private slots:
     void on_txtEdit_textChanged();

@@ -32,6 +32,7 @@ SOURCES += \
 HEADERS += \
         inc/crccalc.h \
         inc/crc.h \
+    inc/constString.h
 
 RC_ICON = res/general/OCR-cyan.ico
 
