@@ -4,3 +4,4 @@
 * Qt 5.9.0 MinGW 32bit
 * Qt Creator 4.3.0
 ----
+![program view](https://github.com/Ging-H/CRC/blob/master/preview.png)
