@@ -34,7 +34,7 @@ HEADERS += \
         inc/crc.h \
     inc/constString.h
 
-RC_ICON = res/general/OCR-cyan.ico
+RC_ICONS = res/general/OCR-cyan.ico
 
 FORMS     += ui/crccalc.ui
 #RESOURCES += res/images.qrc
