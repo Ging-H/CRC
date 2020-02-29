@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>731</width>
-    <height>547</height>
+    <width>535</width>
+    <height>341</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,13 +19,6 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="2" column="4">
-     <widget class="QLabel" name="lblMsg">
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-    </item>
     <item row="0" column="0" rowspan="5">
      <widget class="QListWidget" name="lstCRCSelect">
       <property name="maximumSize">
@@ -35,9 +28,6 @@
        </size>
       </property>
      </widget>
-    </item>
-    <item row="4" column="1" colspan="5">
-     <widget class="QPlainTextEdit" name="txtMsg"/>
     </item>
     <item row="2" column="3">
      <widget class="QPushButton" name="btnLoadFile">
@@ -71,6 +61,22 @@
        <string/>
       </property>
      </widget>
+    </item>
+    <item row="4" column="1" colspan="5">
+     <widget class="QPlainTextEdit" name="txtMsg"/>
+    </item>
+    <item row="2" column="5">
+     <spacer name="horizontalSpacer">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
     </item>
     <item row="2" column="1">
      <widget class="QPushButton" name="btnCalc">
@@ -139,18 +145,12 @@ p, li { white-space: pre-wrap; }
       </property>
      </widget>
     </item>
-    <item row="2" column="5">
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+    <item row="2" column="4">
+     <widget class="QCheckBox" name="ckbHexSelect">
+      <property name="text">
+       <string>ASCII</string>
       </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -171,8 +171,8 @@ p, li { white-space: pre-wrap; }
    <slot>clear()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>436</x>
-     <y>246</y>
+     <x>328</x>
+     <y>229</y>
     </hint>
     <hint type="destinationlabel">
      <x>412</x>
@@ -187,12 +187,12 @@ p, li { white-space: pre-wrap; }
    <slot>click()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>173</x>
-     <y>293</y>
+     <x>156</x>
+     <y>302</y>
     </hint>
     <hint type="destinationlabel">
-     <x>298</x>
-     <y>233</y>
+     <x>242</x>
+     <y>229</y>
     </hint>
    </hints>
   </connection>

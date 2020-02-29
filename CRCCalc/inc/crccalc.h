@@ -87,15 +87,17 @@ public:
     QByteArray toQByteArray(uint32_t tmp);
     QFile *file;
     void calcCRC(QByteArray &tmpBuf, CRCList calcSelect = CRC32 );
+    void verifyInput();
 
 private slots:
-    void on_txtEdit_textChanged();
 
     void on_btnCalc_clicked();
 
     void on_btnLoadFile_clicked();
 
     void on_lstCRCSelect_currentRowChanged(int currentRow);
+
+    void on_ckbHexSelect_clicked(bool checked);
 
 private:
     Ui::CrcCalc *ui;

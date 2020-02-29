@@ -2,6 +2,8 @@
 #include <iostream>
 #include <stdio.h>
 #include "constString.h"
+#include <QtEndian>
+#include <QDebug>
 
 void crc16_riello_Table();
 
@@ -20,17 +22,15 @@ CrcCalc::~CrcCalc()
 }
 
 /* 监控文本,限制只能输入十六进制字符 槽函数 */
-void CrcCalc::on_txtEdit_textChanged()
+void CrcCalc::verifyInput()
 {
     bool isMatch = this->isHexString(ui->txtEdit->toPlainText());
     if(!isMatch){
         QString tmp;
-        disconnect(this->ui->txtEdit,SIGNAL(textChanged()),this,SLOT(on_txtEdit_textChanged()));
         tmp = ui->txtEdit->toPlainText();
         tmp.replace(QRegExp("[^a-f0-9A-F ]"), "");
         ui->txtEdit->setPlainText(tmp);
         ui->txtEdit->moveCursor(QTextCursor::End);
-        connect(this->ui->txtEdit,SIGNAL(textChanged()),this,SLOT(on_txtEdit_textChanged()));
     }
 }
 
@@ -52,10 +52,17 @@ bool CrcCalc::isHexString(QString src)
  */
 void CrcCalc::on_btnCalc_clicked()
 {
-    quint32 index = ui->lstCRCSelect->currentRow();
-    QByteArray tmpBuf ;
     if(ui->txtEdit->toPlainText() != NULL){
-        tmpBuf = this->stringToHex(ui->txtEdit->toPlainText());
+        quint32 index = ui->lstCRCSelect->currentRow();
+        QByteArray tmpBuf ;
+
+        if( !ui->ckbHexSelect->isChecked() ){
+            this->verifyInput();
+            tmpBuf = this->stringToHex(ui->txtEdit->toPlainText());
+        }else{
+            tmpBuf = ui->txtEdit->toPlainText().toLatin1();
+        }
+
         if(!tmpBuf.isEmpty() ){
             this->calcCRC(tmpBuf, (CRCList)index);
         }
@@ -63,12 +70,13 @@ void CrcCalc::on_btnCalc_clicked()
 }
 void CrcCalc::calcCRC(QByteArray &tmpBuf, CRCList calcSelect )
 {
-    uint8_t crc8_;
-    uint16_t crc16_;
-    uint32_t crc32_;
+    quint8 crc8_;
+    quint16 crc16_;
+    quint32 crc32_;
+
     switch(calcSelect){
     case CRC4_itu :
-        crc8_= crc4_itu_calc((uint8_t *)tmpBuf.data(), tmpBuf.length());
+        crc8_ = crc4_itu_calc((uint8_t *)tmpBuf.data(), tmpBuf.length());
         tmpBuf = this->toQByteArray(crc8_);break;
     case CRC16_modbus :
         crc16_ = crc16_modbus_calc((uint8_t *)tmpBuf.data(), tmpBuf.length());
@@ -264,18 +272,22 @@ void CrcCalc::on_lstCRCSelect_currentRowChanged(int currentRow)
     case CRC4_itu :
         name = "CRC4/ITU";poly = "0x03";init = "0x00";refx = "True";xorout = "0x00";
         ui->txtMsg->appendPlainText(crc4_itu_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_modbus :
         name = "CRC16/MODBUS";poly = "0x8005";init = "0xFFFF";refx = "True";xorout = "0x0000";
         ui->txtMsg->appendPlainText(crc16_modbus_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC32 :
         name = "CRC32";poly = "0x4C11DB7";init = "0xFFFFFFFF";refx = "True";xorout = "0xFFFFFFFF";
         ui->txtMsg->appendPlainText(crc32_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC5_epc:
         name = "CRC5/EPC";poly = "0x09";init = "0x09";refx = "False";xorout = "0x00";
         ui->txtMsg->appendPlainText(crc5_epu_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC5_itu:
         name = "CRC5/ITU";poly = "0x15";init = "0x00";refx = "True";xorout = "0x00";
@@ -284,146 +296,182 @@ void CrcCalc::on_lstCRCSelect_currentRowChanged(int currentRow)
     case CRC5_usb:
         name = "CRC5/USB";poly = "0x05";init = "0x1F";refx = "True";xorout = "0x1F";
         ui->txtMsg->appendPlainText(crc5_usb_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC6_itu:
         name = "CRC6/ITU";poly = "0x03";init = "0x00";refx = "True";xorout = "0x00";
         ui->txtMsg->appendPlainText(crc6_itu_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC7_mmc:
         name = "CRC7/MMC";poly = "0x09";init = "0x00";refx = "False";xorout = "0x00";
         ui->txtMsg->appendPlainText(crc7_mmc_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC8:
         name = "CRC8";poly = "0x07";init = "0x00";refx = "False";xorout = "0x00";
         ui->txtMsg->appendPlainText(crc8_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC8_itu:
         name = "CRC8/ITU";poly = "0x07";init = "0x00";refx = "False";xorout = "0x55";
         ui->txtMsg->appendPlainText(crc8_itu_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC8_rohc:
         name = "CRC8/ROHC";poly = "0x07";init = "0xFF";refx = "True";xorout = "0x00";
         ui->txtMsg->appendPlainText(crc8_rohc_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC8_darc:
         name = "CRC8/DARC";poly = "0x39";init = "0x00";refx = "True";xorout = "0x00";
         ui->txtMsg->appendPlainText(crc8_darc_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC8_maxim:
         name = "CRC8/MAXIM";poly = "0x31";init = "0x00";refx = "True";xorout = "0x00";
         ui->txtMsg->appendPlainText(crc8_maxim_string);
+        ui->statusBar->showMessage(name,1000);
         break;    //DS18B20
     case CRC8_cdma2000:
         name = "CRC8/CDMA2000";poly = "0x9B";init = "0xFF";refx = "False";xorout = "0x00";
         ui->txtMsg->appendPlainText(crc8_cdma2000_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC8_dvb_s2:
         name = "CRC8/DVD-S2";poly = "0xD5";init = "0x00";refx = "False";xorout = "0x00";
         ui->txtMsg->appendPlainText(crc8_dvb_s2_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC8_ebu:
         name = "CRC8/EBU";poly = "0x1D";init = "0xFF";refx = "True";xorout = "0x00";
         ui->txtMsg->appendPlainText(crc8_ebu_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC8_i_code:
         name = "CRC8/I-CODE";poly = "0x1D";init = "0xFD";refx = "False";xorout = "0x00";
         ui->txtMsg->appendPlainText(crc8_i_code_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC8_wcdma:
         name = "CRC8/WCDMA";poly = "0x9B";init = "0x00";refx = "True";xorout = "0x00";
         ui->txtMsg->appendPlainText(crc8_wcdma_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_ibm:
         name = "CRC16/IBM";poly = "0x8005";init = "0x0000";refx = "True";xorout = "0x0000";
         ui->txtMsg->appendPlainText(crc16_ibm_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_maxim:
         name = "CRC16/MAXIM";poly = "0x8005";init = "0x0000";refx = "True";xorout = "0xFFFF";
         ui->txtMsg->appendPlainText(crc16_maxim_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_usb:
         name = "CRC16/USB";poly = "0x8005";init = "0xFFFF";refx = "True";xorout = "0xFFFF";
         ui->txtMsg->appendPlainText(crc16_usb_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_ccitt:
         name = "CRC16/CCITT(KERMIT)";poly = "0x1021";init = "0x0000";refx = "True";xorout = "0x0000";
         ui->txtMsg->appendPlainText(crc16_ccitt_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_ccitt_false:
         name = "CRC16/CCITT-False";poly = "0x1021";init = "0xFFFF";refx = "False";xorout = "0x0000";
         ui->txtMsg->appendPlainText(crc16_ccitt_false_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_x25:
         name = "CRC16/X25";poly = "0x1021";init = "0xFFFF";refx = "True";xorout = "0xFFFF";
         ui->txtMsg->appendPlainText(crc16_x25_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_xmodem:
         name = "CRC16/XMODEM";poly = "0x1021";init = "0x0000";refx = "False";xorout = "0x0000";
         ui->txtMsg->appendPlainText(crc16_xmodem_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_dnp:
         name = "CRC16/DNP";poly = "0x3D65";init = "0x0000";refx = "True";xorout = "0xFFFF";
-
+        ui->txtMsg->appendPlainText(crc16_dnp_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_aug_ccitt:
         name = "CRC16/AUG-CCITT";poly = "0x1021";init = "0x1D0F";refx = "False";xorout = "0x0000";
         ui->txtMsg->appendPlainText(crc16_aug_ccitt_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_buypass:
         name = "CRC16/BUYPASS";poly = "0x8005";init = "0x0000";refx = "False";xorout = "0x0000";
         ui->txtMsg->appendPlainText(crc16_buypass_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_cdma2000:
         name = "CRC16/CDMA2000";poly = "0xC867";init = "0xFFFF";refx = "False";xorout = "0x0000";
         ui->txtMsg->appendPlainText(crc16_cdma2000_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_dds_110:
         name = "CRC16/DDS-110";poly = "0x8005";init = "0x800D";refx = "False";xorout = "0x0000";
         ui->txtMsg->appendPlainText(crc16_dds_110_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_dect_r:
         name = "CRC16/DECT-R";poly = "0x0589";init = "0x0000";refx = "False";xorout = "0x0001";
         ui->txtMsg->appendPlainText(crc16_dect_r_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_dect_x:
         name = "CRC16/DECT-X";poly = "0x0589";init = "0x0000";refx = "False";xorout = "0x0000";
         ui->txtMsg->appendPlainText(crc16_dect_x_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_en_13757:
         name = "CRC16/EN-13757";poly = "0x3D65";init = "0x0000";refx = "False";xorout = "0xFFFF";
         ui->txtMsg->appendPlainText(crc16_en_13757_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_genibus:
         name = "CRC16/GENIBUS";poly = "0x1021";init = "0xFFFF";refx = "False";xorout = "0xFFFF";
         ui->txtMsg->appendPlainText(crc16_genibus_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_mcrf4xx:
         name = "CRC16/MCRF4XX";poly = "0x1021";init = "0xFFFF";refx = "True";xorout = "0x0000";
         ui->txtMsg->appendPlainText(crc16_mcrf4xx_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_riello:
         name = "CRC16/RIELLO";poly = "0x1021";init = "0xB2AA";refx = "True";xorout = "0x0000";
         ui->txtMsg->appendPlainText(crc16_riello_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_t10_dif:
         name = "CRC16/T10-DIF";poly = "0x8BB7";init = "0x0000";refx = "False";xorout = "0x0000";
         ui->txtMsg->appendPlainText(crc16_t10_dif_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_teledisk:
         name = "CRC16/TELEDISK";poly = "0xA097";init = "0x0000";refx = "False";xorout = "0x0000";
         ui->txtMsg->appendPlainText(crc16_teledisk_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_tms37157:
         name = "CRC16/TMS37157";poly = "0x1021";init = "0x89EC";refx = "True";xorout = "0x0000";
         ui->txtMsg->appendPlainText(crc16_tms37157_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC16_a:
         name = "CRC16/A";poly = "0x1021";init = "0xC6C6";refx = "True";xorout = "0x0000";
         ui->txtMsg->appendPlainText(crc16_a_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC32_mpeg_2:
         name = "CRC32/MEPG-2";poly = "0x4C11DB7";init = "0xFFFFFFFF";refx = "False";xorout = "0x00000000";
         ui->txtMsg->appendPlainText(crc32_mpeg_2_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC32_bzip2:
         name = "CRC32/BZIP2";poly = "0x4C11DB7";init = "0xFFFFFFFF";refx = "True";xorout = "0xFFFFFFFF";
@@ -432,26 +480,32 @@ void CrcCalc::on_lstCRCSelect_currentRowChanged(int currentRow)
     case CRC32_c:
         name = "CRC32/C";poly = "0x1EDC6F41";init = "0xFFFFFFFF";refx = "True";xorout = "0xFFFFFFFF";
         ui->txtMsg->appendPlainText(crc32_c_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC32_d:
         name = "CRC32/C";poly = "0xA833982B";init = "0xFFFFFFFF";refx = "True";xorout = "0xFFFFFFFF";
         ui->txtMsg->appendPlainText(crc32_d_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC32_posix:
         name = "CRC32/POSIX";poly = "0x4C11DB7";init = "0x00000000";refx = "False";xorout = "0xFFFFFFFF";
         ui->txtMsg->appendPlainText(crc32_posix_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC32_q:
         name = "CRC32/Q";poly = "0x814141AB";init = "0x00000000";refx = "False";xorout = "0x00000000";
         ui->txtMsg->appendPlainText(crc32_q_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC32_jamcrc:
         name = "CRC32/JAMCRC";poly = "0x4C11DB7";init = "0xFFFFFFFF";refx = "True";xorout = "0x00000000";
         ui->txtMsg->appendPlainText(crc32_jamcrc_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     case CRC32_xfer:
         name = "CRC32/XFER";poly = "0x000000AF";init = "0x00000000";refx = "False";xorout = "0x00000000";
         ui->txtMsg->appendPlainText(crc32_xfer_string);
+        ui->statusBar->showMessage(name,1000);
         break;
     default: break;
     }
@@ -502,10 +556,10 @@ QByteArray CrcCalc::toQByteArray(uint32_t tmp)
 }
 
 
-
+/* 载入文件 */
 void CrcCalc::on_btnLoadFile_clicked()
 {
-    ui->lblMsg->setText("Open File");
+    ui->statusBar->showMessage("选择文件");
     QString filePath = QFileDialog::getOpenFileName(this,"Open FIle", qApp->applicationDirPath(), "All(*.*)") ;
     if(NULL != filePath ){
         file = new QFile(filePath);
@@ -516,15 +570,19 @@ void CrcCalc::on_btnLoadFile_clicked()
             this->calcCRC(tmpBuf, crcList);
 
             file->close();
-            ui->lblMsg->setText("CRC Complete!");
+            ui->statusBar->showMessage("CRC校验文件完成", 3000);
         }else{
-            QMessageBox::information(NULL, tr("打开失败"),  tr("打开文件失败"), 0, 0);
-            ui->lblMsg->setText("False!");
+            ui->statusBar->showMessage("打开文件失败,无法打开文件", 3000);
         }
         delete file;
-    }else{
-        ui->lblMsg->clear();
     }
 }
-
-
+/* 选择Hex或者ASCII */
+void CrcCalc::on_ckbHexSelect_clicked(bool checked)
+{
+    if(checked){
+        ui->txtEdit->setPlaceholderText("可以输入非中文字符，回车键被视为一个换行符<LF>");
+    }else{
+        ui->txtEdit->setPlaceholderText("只能输入Hex字符串与空格: 0-9,a-f,A-F,");
+    }
+}
