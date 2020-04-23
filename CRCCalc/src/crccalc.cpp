@@ -14,6 +14,10 @@ CrcCalc::CrcCalc(QWidget *parent) :
     ui->setupUi(this);
     this->listCRC();
     ui->txtEdit->setPlaceholderText("只能输入Hex字符串与空格: 0-9,a-f,A-F,");
+    ui->rdbUtf8->hide();
+    ui->rdbGB2312->hide();
+
+
 }
 
 CrcCalc::~CrcCalc()
@@ -21,7 +25,10 @@ CrcCalc::~CrcCalc()
     delete ui;
 }
 
-/* 监控文本,限制只能输入十六进制字符 槽函数 */
+
+/**
+ * @brief CrcCalc::verifyInput 监控输入文本,限制只能输入十六进制字符
+ */
 void CrcCalc::verifyInput()
 {
     bool isMatch = this->isHexString(ui->txtEdit->toPlainText());
@@ -56,18 +63,28 @@ void CrcCalc::on_btnCalc_clicked()
         quint32 index = ui->lstCRCSelect->currentRow();
         QByteArray tmpBuf ;
 
-        if( !ui->ckbHexSelect->isChecked() ){
+        if( !ui->ckbHexSelect->isChecked() ){// HEX 字符模式
             this->verifyInput();
             tmpBuf = this->stringToHex(ui->txtEdit->toPlainText());
-        }else{
-            tmpBuf = ui->txtEdit->toPlainText().toLatin1();
-        }
+        }else{// ASCII 字符模式
+            if(ui->rdbUtf8->isChecked()){
+                tmpBuf = ui->txtEdit->toPlainText().toUtf8();      // utf8 编码的中文字符
+            }else{
+                tmpBuf = ui->txtEdit->toPlainText().toLocal8Bit(); // GB2312 编码的中文字符
+            }
+            ui->statusBar->showMessage("字符编码:" + tmpBuf.toHex(' ').toUpper());
 
+        }
         if(!tmpBuf.isEmpty() ){
             this->calcCRC(tmpBuf, (CRCList)index);
         }
     }
 }
+/**
+ * @brief CrcCalc::calcCRC 计算CRC校验码
+ * @param tmpBuf
+ * @param calcSelect 校验码类型
+ */
 void CrcCalc::calcCRC(QByteArray &tmpBuf, CRCList calcSelect )
 {
     quint8 crc8_;
@@ -229,8 +246,6 @@ void CrcCalc::calcCRC(QByteArray &tmpBuf, CRCList calcSelect )
 }
 
 
-
-
 /* 将QString 转换成可以十六进制的字符QByteArray */ // "33 35" -> 0x33 0x35
 /* 并且删除 非打印字符  */
 QByteArray CrcCalc::stringToHex(QString src )
@@ -241,7 +256,7 @@ QByteArray CrcCalc::stringToHex(QString src )
     QByteArray tmpTest = tmpString.toLatin1();// "3335"->0x33 0x33 0x33 0x35
     if(tmpTest.length() & 0x01 ) // 奇数个字符,最后一个字符不能满足转换成Hex数据
     {
-        tmpTest.remove(tmpTest.length()-1, 1); // 移除并警告
+        tmpTest.remove(tmpTest.length()-1, 1); // 移除最后一个字符并警告
         QMessageBox::information(NULL, tr("不支持的输入"),  tr("请输入完整的字节"), 0, 0);
         buf.clear();
     }else{
@@ -251,6 +266,10 @@ QByteArray CrcCalc::stringToHex(QString src )
 }
 
 /* 状态栏显示相关crc信息 */
+/**
+ * @brief CrcCalc::on_lstCRCSelect_currentRowChanged 状态栏显示CRC信息
+ * @param currentRow
+ */
 void CrcCalc::on_lstCRCSelect_currentRowChanged(int currentRow)
 {
     QString templateString = "/**\n"
@@ -483,7 +502,7 @@ void CrcCalc::on_lstCRCSelect_currentRowChanged(int currentRow)
         ui->statusBar->showMessage(name,1000);
         break;
     case CRC32_d:
-        name = "CRC32/C";poly = "0xA833982B";init = "0xFFFFFFFF";refx = "True";xorout = "0xFFFFFFFF";
+        name = "CRC32/D";poly = "0xA833982B";init = "0xFFFFFFFF";refx = "True";xorout = "0xFFFFFFFF";
         ui->txtMsg->appendPlainText(crc32_d_string);
         ui->statusBar->showMessage(name,1000);
         break;
@@ -514,7 +533,10 @@ void CrcCalc::on_lstCRCSelect_currentRowChanged(int currentRow)
     ui->txtMsg->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor );
 }
 
-/* 显示crc列表 */
+
+/**
+ * @brief CrcCalc::listCRC 显示CRC算法列表
+ */
 void CrcCalc::listCRC()
 {
     QStringList CRCStringList;
@@ -529,6 +551,11 @@ void CrcCalc::listCRC()
     ui->lstCRCSelect->addItems(CRCStringList);
 }
 
+/**
+ * @brief CrcCalc::toQByteArray  uint8_t 转换成QByteArray
+ * @param tmp
+ * @return
+ */
 QByteArray CrcCalc::toQByteArray(uint8_t tmp)
 {
     QByteArray retVal;
@@ -556,10 +583,12 @@ QByteArray CrcCalc::toQByteArray(uint32_t tmp)
 }
 
 
-/* 载入文件 */
+/**
+ * @brief CrcCalc::on_btnLoadFile_clicked 加载文件
+ */
 void CrcCalc::on_btnLoadFile_clicked()
 {
-    ui->statusBar->showMessage("选择文件");
+    ui->statusBar->showMessage("选择文件,文件内容不区分编码");
     QString filePath = QFileDialog::getOpenFileName(this,"Open FIle", qApp->applicationDirPath(), "All(*.*)") ;
     if(NULL != filePath ){
         file = new QFile(filePath);
@@ -577,12 +606,19 @@ void CrcCalc::on_btnLoadFile_clicked()
         delete file;
     }
 }
-/* 选择Hex或者ASCII */
+/**
+ * @brief CrcCalc::on_ckbHexSelect_clicked 选择输入Hex或者ASCII字符
+ * @param checked
+ */
 void CrcCalc::on_ckbHexSelect_clicked(bool checked)
 {
     if(checked){
-        ui->txtEdit->setPlaceholderText("可以输入非中文字符，回车键被视为一个换行符<LF>");
+        ui->txtEdit->setPlaceholderText("回车键被视为一个换行符<LF>");
+        ui->rdbUtf8->show();
+        ui->rdbGB2312->show();
     }else{
         ui->txtEdit->setPlaceholderText("只能输入Hex字符串与空格: 0-9,a-f,A-F,");
+        ui->rdbUtf8->hide();
+        ui->rdbGB2312->hide();
     }
 }
